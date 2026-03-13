@@ -1,0 +1,101 @@
+# **🚀 App Build Flow - {{ client[0].project_name }}**
+
+This document outlines the steps required to build and deploy the applications in our **{{ client[0].repository_type }}**. The structure of the repository and the build process are described below.
+
+---
+
+## **📁 Repository Structure**
+
+Our {{ client[0].repository_type }} is organized as follows:
+
+### **🗂️ Folder Structure**
+
+Here's a brief overview of the folder structure:
+
+```bash
+{{ repository_structure }}
+```
+
+---
+
+## **🛠️ Build Process**
+
+{% for global_cmd in global_commands %}
+### **{{ loop.index }}. {{ global_cmd.description }}**
+
+```bash
+{{ global_cmd.command }}
+```
+
+{% endfor %}
+
+### **{{ global_commands|length + 1 }}. Build Applications**
+
+You can build the specific application using the commands below in the root directory:
+
+{% for app in applications %}
+#### **{{ app.name }} ({{ app.technology }})**
+
+{% for build_cmd in app.build_commands %}
+```bash
+{{ build_cmd.command }}
+```
+*{{ build_cmd.description }}*
+
+{% endfor %}
+{% endfor %}
+
+---
+
+## **🌍 Environments and Key Considerations**
+
+{{ environments_text }}
+
+### **🐳 Docker Usage**
+
+{{ docker_text }}
+
+---
+
+## **📋 Quick Reference Commands**
+
+### **Global Commands**
+| Command | Description |
+|---------|-------------|
+{% for global_cmd in global_commands %}
+| `{{ global_cmd.command }}` | {{ global_cmd.description }} |
+{% endfor %}
+
+### **Application Build Commands**
+{% for app in applications %}
+
+#### **{{ app.name }}**
+| Command | Description |
+|---------|-------------|
+{% for build_cmd in app.build_commands %}
+| `{{ build_cmd.command }}` | {{ build_cmd.description }} |
+{% endfor %}
+
+{% endfor %}
+
+---
+
+## **🔗 Related Documentation**
+
+{{ additional_sections_text }}
+
+---
+
+## **⚠️ Important Notes**
+
+- Always run commands from the **root directory** unless specified otherwise
+- Ensure all dependencies are installed before building applications
+- For production builds, the Jenkins pipeline handles the entire process automatically
+- Manual builds are possible but require proper environment configuration
+- Each application may have multiple build command options - choose the one that fits your workflow
+
+---
+
+**Generated**: {{ ansible_date_time.iso8601 if ansible_date_time is defined else 'Manual' }}  
+**Project**: {{ client[0].project_name }}  
+**Repository Type**: {{ client[0].repository_type | title }}

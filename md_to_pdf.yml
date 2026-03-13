@@ -1,0 +1,29 @@
+---
+- name: Convert Markdown Documentation to PDF
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    md_files:
+      - component.md
+      - access.md
+      - app_build_flow.md
+      - cicd.md
+    output_dir: output
+
+  tasks:
+    - name: Ensure output directory exists
+      ansible.builtin.file:
+        path: "{{ output_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Convert Markdown to PDF using md-to-pdf
+      ansible.builtin.command:
+        cmd: "md-to-pdf {{ output_dir }}/{{ item }} --basedir . --pdf-options='{\"format\":\"A4\"}'"
+      loop: "{{ md_files }}"
+      register: pdf_conversion
+
+    - name: Show PDF conversion output
+      ansible.builtin.debug:
+        var: pdf_conversion.results

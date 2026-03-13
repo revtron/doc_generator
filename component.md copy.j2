@@ -1,0 +1,192 @@
+# Component Document - {{ client[0].name }}
+
+**Environment**: {{ client[0].env }}  
+**Cloud Provider**: {{ client[0].cloud }}  
+**Region**: {{ client[0].region }}  
+**Generated**: {{ ansible_date_time.iso8601 }}
+
+---
+
+## Infrastructure Overview
+
+### EC2 Instances
+
+| Name | Type | Public IP | Private IP | CPU | Memory | Storage | Security Group | Purpose | Management Node | SSH Port |
+|------|------|-----------|------------|-----|--------|---------|----------------|---------|-----------------|----------|
+{% for ec2 in ec2_instances.values() %}
+{% set inst = ec2[0] %}
+| {{ inst.name }} | {{ inst.instance_type }} | {{ inst.public_ip }} | {{ inst.private_ip }} | {{ inst.specs[0].cpu }} | {{ inst.specs[0].memory }} | {{ inst.specs[0].storage }} | {{ inst.security_group }} | {{ inst.used_for }} | {{ 'Yes' if inst.is_management_node else 'No' }} | {{ inst.access[0].key_pair[0].port }} |
+{% endfor %}
+
+---
+
+### RDS Instances
+
+| Name | Type | Engine | Version | Class | Storage | Port | Endpoint | Security Group | Privately Accessible |
+|------|------|--------|---------|-------|---------|------|----------|----------------|---------------------|
+{% for rds in rds_instances.values() %}
+{% set db = rds[0] %}
+| {{ db.name }} | {{ db.type }} | {{ db.engine }} | {{ db.version }} | {{ db.instance_type }} | {{ db.storage }} | {{ db.port }} | {{ db.endpoint }} | {{ db.security_group }} | {{ 'Yes' if db.privately_accessible else 'No' }} |
+{% endfor %}
+
+
+---
+
+
+### S3 Buckets
+
+| Name | Region |
+|------|--------|
+{% for bucket in s3_buckets.values() %}
+{% set b = bucket[0] %}
+| {{ b.name }} | {{ b.region }} |
+{% endfor %}
+
+---
+
+## Application Load Balancers
+
+{% for alb in albs.values() %}
+{% set a = alb[0] %}
+### {{ a.name }} ({{ a.region }})
+
+#### Listener Summary
+
+| Port | Protocol | Action   | Redirect To | SSL Policy               | Certificates |
+|------|----------|----------|-------------|--------------------------|--------------|
+{% for listener in a.listeners %}
+| {{ listener.port }} | {{ listener.protocol }} | {% if listener.action is defined %}{{ listener.action }}{% else %}forward{% endif %} | {% if listener.redirect_to_port is defined %}{{ listener.redirect_to_port }}{% else %}N/A{% endif %} | {% if listener.ssl_policy is defined %}{{ listener.ssl_policy }}{% else %}N/A{% endif %} | {% if listener.certificates is defined %}{{ listener.certificates[0].arn }}{% else %}N/A{% endif %} |
+{% endfor %}
+
+{% for listener in a.listeners %}
+{% if listener.rules is defined %}
+#### Listener Port {{ listener.port }} - Host-based Routing Rules
+
+| Host Header        | Target Group   | Port | Protocol | Target Type |
+|--------------------|----------------|------|----------|-------------|
+{% for rule in listener.rules %}
+| {{ rule.host_header }} | {{ rule.target_group.name }} | {{ rule.target_group.port }} | {{ rule.target_group.protocol }} | {{ rule.target_group.target_type }} |
+{% endfor %}
+
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+---
+
+### Redis Instances
+
+| Name | Region |
+|------|--------|
+{% for redis_list in redis_instances.values() %}
+  {% for redis in redis_list %}
+| {{ redis.name }} | {{ redis.region }} |
+  {% endfor %}
+{% endfor %}
+
+---
+
+## ECR Repositories
+
+| Name | Region | URL |
+|------|--------|-----|
+{% for ecr_list in ecr_repos.values() %}
+  {% for ecr in ecr_list %}
+| {{ ecr.name }} | {{ ecr.region }} | `{{ ecr.url }}` |
+  {% endfor %}
+{% endfor %}
+
+---
+
+### Application Endpoints
+
+| Name | Endpoint |
+|------|----------|
+{% for name, value in app_endpoints.items() %}
+| {{ name }} | {{ value }} |
+{% endfor %}
+
+---
+
+### Observability Tools
+
+| Name | Endpoint |
+|------|----------|
+{% for tool in observability_endpoints.tools %}
+| {{ tool.name | title }} | {{ tool.endpoint }} |
+{% if tool.endpoint == 'NA' %}
+{% endif %}
+{% endfor %}
+
+NA specifies that the service is not publicly exposed.
+
+---
+
+### CI/CD Tools
+
+| Name | Endpoint |
+|------|----------|
+{% for cicd_tool in cicd_endpoints.values() %}
+{% set tool = cicd_tool[0] %}
+| {{ tool.name | title }} | {{ tool.endpoint }} |
+{% if tool.endpoint == 'NA' %}
+ .This service is not publicly exposed.
+{% endif %}
+{% endfor %}
+
+---
+
+### SSL Certificates
+
+{% for cert in ssl_certificates %}
+{{ cert.info }}
+{% endfor %}
+
+
+## Server Access Instructions
+
+**1. Logging into the Management Node**
+
+To access any server, first, log in to the **Management Node**:
+
+{% for ec2 in ec2_instances.values() %}
+{% set inst = ec2[0] %}
+{% set key = inst.access[0].key_pair[0] %}
+{% if inst.is_management_node %}
+```bash
+## Login to management node
+ssh ubuntu@{{ inst.public_ip }} -i {{ key.name }}.pem
+
+## Switch to root user, run the below command and then to `management-user`
+sudo su -
+su -l management-user
+
+## Run below alias to access the app servers
+# Example: run {{ ec2_instances.values() | selectattr('0.is_management_node', 'equalto', false) | map('first') | map(attribute='alias') | first }} - this will login to {{ ec2_instances.values() | selectattr('0.is_management_node', 'equalto', false) | map('first') | map(attribute='name') | first }}
+{{ ec2_instances.values() | selectattr('0.is_management_node', 'equalto', false) | map('first') | map(attribute='alias') | first }}
+```
+{% endif %}
+{% endfor %}
+
+**2. Using Aliases to Access Servers**
+
+Once logged into the management node, use the predefined aliases to access different servers:
+
+| User | Alias | Destination Server |
+|------|-------|-------------------|
+{% for ec2 in ec2_instances.values() %}
+{% set inst = ec2[0] %}
+{% if not inst.is_management_node %}
+| management-user | {{ inst.alias }} | {{ inst.name }} ({{ inst.private_ip }}) |
+{% endif %}
+{% endfor %}
+
+
+**4. Direct SSH Access - Not Recommended Until Very Necessary**
+
+If you need direct SSH access to any server:
+
+```
+ssh ubuntu@<ip> -i <key> -p <port>
+```
+

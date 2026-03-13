@@ -1,0 +1,226 @@
+# Access Details - {{ client[0].name }}
+
+⚠️ **CONFIDENTIAL**: This document contains sensitive access credentials. Handle with care.
+
+---
+
+## Table of Contents
+- [Server Access Instructions](#server-access-instructions)
+- [EC2 Instance Access](#ec2-instance-access)
+- [Database Access](#database-access)
+- [S3 Bucket Access](#s3-bucket-access)
+- [Observability Tools](#observability-tools)
+- [CI/CD Tools](#cicd-tools)
+
+---
+
+### ServerInstances
+
+| Name | Type | Public IP | Private IP | CPU | Memory | Storage | Security Group | Purpose | Management Node | SSH Port |
+|------|------|-----------|------------|-----|--------|---------|----------------|---------|-----------------|----------|
+{% for ec2 in ec2_instances.values() %}
+{% set inst = ec2[0] %}
+| {{ inst.name }} | {{ inst.instance_type }} | {{ inst.public_ip }} | {{ inst.private_ip }} | {{ inst.specs[0].cpu }} | {{ inst.specs[0].memory }} | {{ inst.specs[0].storage }} | {{ inst.security_group }} | {{ inst.used_for }} | {{ 'Yes' if inst.is_management_node else 'No' }} | {{ inst.access[0].key_pair[0].port }} |
+{% endfor %}
+
+---
+
+## Server Access Instructions
+
+**1. Logging into the Management Node**
+
+To access any server, first, log in to the **Management Node**:
+
+{% for ec2 in ec2_instances.values() %}
+{% set inst = ec2[0] %}
+{% set key = inst.access[0].key_pair[0] %}
+{% if inst.is_management_node %}
+```bash
+## Login to management node
+ssh ubuntu@{{ inst.public_ip }} -i {{ key.name }}.pem
+
+## Switch to root user, run the below command and then to `management-user`
+sudo su -
+su -l management-user
+
+## Run below alias to access the app servers
+# Example: run {{ ec2_instances.values() | selectattr('0.is_management_node', 'equalto', false) | map('first') | map(attribute='alias') | first }} - this will login to {{ ec2_instances.values() | selectattr('0.is_management_node', 'equalto', false) | map('first') | map(attribute='name') | first }}
+{{ ec2_instances.values() | selectattr('0.is_management_node', 'equalto', false) | map('first') | map(attribute='alias') | first }}
+```
+{% endif %}
+{% endfor %}
+
+**2. Using Aliases to Access Servers**
+
+Once logged into the management node, use the predefined aliases to access different servers:
+
+| User | Alias | Destination Server |
+|------|-------|-------------------|
+{% for ec2 in ec2_instances.values() %}
+{% set inst = ec2[0] %}
+{% if not inst.is_management_node %}
+| management-user | {{ inst.alias }} | {{ inst.name }} ({{ inst.private_ip }}) |
+{% endif %}
+{% endfor %}
+
+
+**4. Direct SSH Access - Not Recommended Until Very Necessary**
+
+If you need direct SSH access to any server:
+
+```
+ssh ubuntu@<ip> -i <key> -p <port>
+```
+
+---
+
+
+## Database Access
+
+{% for rds in rds_instances.values() %}
+{% set db = rds[0] %}
+
+### {{ db.name }}
+
+| Property | Value |
+|----------|-------|
+| **Database Type** | {{ db.type }} |
+| **Engine** | {{ db.engine }} {{ db.version }} |
+| **Instance Class** | {{ db.instance_type }} |
+| **Endpoint** | `{{ db.endpoint }}` |
+| **Port** | `{{ db.port }}` |
+| **Database Name** | `{{ db.access[0].database }}` |
+| **Username** | `{{ db.access[0].username }}` |
+| **Password** | `{{ db.access[0].password }}` |
+| **Network Access** | {% if db.privately_accessible %}🔒 Private (VPC only){% else %}🌐 Public{% endif %} |
+
+#### Connection Methods
+
+**Using psql (Command Line)**:
+```bash
+PGPASSWORD="{{ db.access[0].password }}" psql \
+  -h {{ db.endpoint }} \
+  -U {{ db.access[0].username }} \
+  -d {{ db.access[0].database }} \
+  -p {{ db.port }}
+```
+
+**Connection String (for applications)** Keep in mind this is a private endpoint and not accessible from the public internet:
+```
+postgresql://{{ db.access[0].username }}:{{ db.access[0].password }}@{{ db.endpoint }}:{{ db.port }}/{{ db.access[0].database }}
+```
+
+---
+{% endfor %}
+
+
+## Redis Access
+
+{% for redis_list in redis_instances.values() %}
+  {% for redis in redis_list %}
+
+### {{ redis.name }}
+
+| Property | Value |
+|----------|-------|
+| **Region** | `{{ redis.region }}` |   
+| **Access Key** | `{{ redis.access[0].key }}` |
+
+  {% endfor %}
+{% endfor %}
+---
+## ECR Access Instructions
+
+{% for ecr_list in ecr_repos.values() %}
+  {% for ecr in ecr_list %}
+
+### {{ ecr.name }}
+
+| Property       | Value |
+|----------------|-------|
+| **Region**     | `{{ ecr.region }}` |
+| **Repository URL** | `{{ ecr.url }}` |
+
+#### How to Authenticate and Push/Pull
+
+1. Open the AWS Console:  
+   [https://console.aws.amazon.com/ecr/repositories](https://console.aws.amazon.com/ecr/repositories)
+
+2. Select the repository: `{{ ecr.name }}` in **{{ ecr.region }}**.
+
+3. Click **“View push commands”** or **“View pull commands”**.
+
+4. Follow the AWS CLI instructions provided in the console.
+
+{% endfor %}
+{% endfor %}
+
+---
+
+## S3 Bucket Access
+
+{% for bucket in s3_buckets.values() %}
+{% set b = bucket[0] %}
+
+### {{ b.name }}
+
+| Property | Value |
+|----------|-------|
+| **Bucket Name** | `{{ b.name }}` |
+| **Region** | `{{ b.region }}` |
+| **Access Key ID** | `{{ b.access[0].key }}` |
+| **Secret Access Key** | `{{ b.access[0].secret_key | default('NA') }}` |
+
+
+---
+{% endfor %}
+
+## Observability Tools
+
+| Tool | Status | Endpoint | Access |
+|------|--------|----------|--------|
+{% for tool in observability_endpoints.tools %}
+| **{{ tool.name | title }}** | {% if tool.endpoint == 'NA' %}🔴 Internal Only{% else %}🟢 Available{% endif %} | {% if tool.endpoint != 'NA' %}`{{ tool.endpoint }}`{% else %}Not Exposed{% endif %} | {% if tool.credentials is defined and tool.credentials[0].username is defined %}👤 `{{ tool.credentials[0].username }}`{% else %}ℹ️ See admin{% endif %} |
+{% endfor %}
+
+### Access Details
+
+{% for tool in observability_endpoints.tools %}
+{% if tool.endpoint != 'NA' %}
+#### {{ tool.name | title }}
+- **URL**: [{{ tool.endpoint }}]({{ tool.endpoint }})
+{% if tool.credentials is defined and tool.credentials[0].username is defined %}
+- **Username**: `{{ tool.credentials[0].username }}`
+- **Password**: `{{ tool.credentials[0].password }}`
+{% else %}
+- **Authentication**: Contact system administrator for credentials
+{% endif %}
+
+{% else %}
+#### {{ tool.name | title }}
+- **Status**: 🔒 Internal service - not publicly accessible
+- **Access**: Available only from within the VPC network
+
+{% endif %}
+{% endfor %}
+
+---
+
+## CI/CD Tools
+
+{% for cicd_tool in cicd_endpoints.values() %}
+{% set tool = cicd_tool[0] %}
+
+### {{ tool.name | title }}
+
+| Property | Value |
+|----------|-------|
+| **Service** | {{ tool.name | title }} |
+| **Endpoint** | [`{{ tool.endpoint }}`]({{ tool.endpoint }}) |
+{% if tool.credentials is defined and tool.credentials[0].username is defined %}
+| **Username** | `{{ tool.credentials[0].username }}` |
+| **Password** | `{{ tool.credentials[0].password }}` |
+{% else %}
+| **Authentication** | Contact administrator |
+{% endif %}
+{% endfor %}

@@ -1,0 +1,242 @@
+client:
+- name: "Fleet Connect"
+  env: "Staging"
+  cloud: "AWS"
+  region: "us-east-1"
+  repository_type: "monorepo"
+  project_name: "Fleet Connect"
+
+ec2_instances:
+  web_server:
+  - name: "managment node"
+    instance_type: "t4g.medium"
+    public_ip: "52.7.90.49"
+    private_ip: "10.0.12.240"
+    security_group: "fleetconnect-stag-management"
+    used_for: "Jump Server/Bastion host"
+    is_management_node: true
+    alias: "bastion"
+    specs:
+    - cpu: "2 vCPU"
+      memory: "4GB"
+      storage: "30GB EBS"
+    access:
+    - key_pair:
+      - name: "fleetconnect-stag-management-key"
+        port: 10022
+        content: |
+          -----BEGIN RSA PRIVATE KEY-----
+          MIIEpAIBAAKCAQEA41vbcNviQ4NdbDM/Gqfgpcq2usIWoBbRcIerUNzlMsPvsyAB
+          gM8bbO3LAO+02oRsvGzSumNcQp3C7y3KQnARkDvLF2i/Z+bQgQFjKJx1/lgkF99T
+          DkfOIQvwULmIaOvzbki9EH85x/UGS/JeIWYKqY3AEgHk43a+I6v2N/H29m5ITxTn
+          IVpJ+6rhK1aE91yU3F0yaoZqhQsrasEaiLinPpM05YlpwSb+NISTLj2qmMOo0CSj
+          eItpkdmwiciu3lMaq1SEd45hwK3o3WEQOzAjw4gJlpCxuK6bSQ9D/Zhe+LX4plbF
+          Z/yWFFQdTXZeIy2oQMiL3ZdSXYYDD4HYoMz4HQIDAQABAoIBACnEzmPFgaP1lkwy
+          ff1fqh3LSBa3YYC3sHKD+i0458KTzI2T67LGWbuBVDIv14HtoixbsbscVe7HHPDj
+          8KyT+iYNVhpO3BsyhEuu/ZCQbfz0JG1eUdvlxTC9CMFL1IuyDV7Nbi6BsRPTJ/z7
+          4d8w5/SOXiLwxiQjxHq5NNrCUSSkdVjxi17dHHckqQcpvhsP3pp0BxCpj3tudN4v
+          P1qtMJlj+3db04ZmXphFTAAfDAY2tL9ngNsdez2zf4tZWle14GOkkECymcicI7T5
+          DR3CoFCGr0anLPLI+atuyF7ETElgBssXe62xwjN1P0BqlWfWHW33rI5tqBuKRlP2
+          oWt+FeECgYEA/DPinIC8uQ+Ue0AFHOMxStLIGbMyUFqjf2/zd1ofxf5lu5oxQ71r
+          c6RNnOQ9JAFg92yE/cGtObwJClSn8rTlvqRFbcoJ6apmQEEqn4d272Y2Gqwr44bV
+          /EjLAzG5fhPZTRn4OCRsy7q9+dXQWZ7HAH6/lCjRNth8Vvxt0zat3mMCgYEA5sg2
+          HLEa29iAiWOFATyGmOoO2wpS6I987YocGw+2aFcLLjWWLG5YRFdRk6+oJ+dxxNIZ
+          F8unyjfRunlRmkoU59Ezv04H50OSEgxglJ5L3xPbt9wjaR0jXsedImaP4yeelITA
+          YqEAOoE7P2nU12OqwNiMvb4VEJucQiPQCXOoV38CgYEAvMmSHpj3rIgPG9umeCNR
+          aLMz+pj7Vs8iiGijFXqvQiTWvoID0rNeVeht+L2ZTvSBQ3VGcDWkmA07rzIDrljf
+          ib+qAS82EGXvuLWPVG+xBi+63Gh5Sg5K7FkJLtDwC4KMLXz9I/mQP0kAoJ3/IrcK
+          PEKk4iFTyvxuxyaah3rs2AUCgYEA0LMJzFSU128ofhYTd5TGm44+tPLXGxx3e1DE
+          Ley9pgnhQH6ROcjn5ZWZXhch2ERC7BybOJuhNwvXi+yeUQrhcOoNA9mK6CaA9/Vd
+          ecjVD/0jW1emZi5FiDa38R4SzPdNPz31xLuYO1AWxjfslIO7LP4n+IbnAcfXPTCp
+          t4JyH/0CgYARD35zL5bRDFWWGLeSo1OMv4F5Ic3MnF9WAp2r6KnIyZnuEJj2+p4b
+          9kRmeEzaZ/ZZ2e2EYDbE9818KXVgkKMw1+88Wes5V65vcuLzG6xdv+GDeYojwiac
+          XWhdMraPkdZx4gwnRwhxhi0nArNLSFTSIawTX9MCoZcKuyW5JHpw7Q==
+          -----END RSA PRIVATE KEY-----
+
+  app_server:
+  - name: "app-server"
+    instance_type: "t4g.medium"
+    public_ip: "N/A"
+    private_ip: "10.0.139.54"
+    security_group: "fleetconnect-app-sg"
+    used_for: "Application backend ,front-end and admin-app"
+    is_management_node: false
+    alias: "app_server"
+    specs:
+    - cpu: "2 vCPU"
+      memory: "4GB"
+      storage: "30GB EBS"
+    access:
+    - key_pair:
+      - name: "internal-staging"
+        port: 22
+        content: |
+          -----BEGIN RSA PRIVATE KEY-----
+          MIIEpAIBAAKCAQEAuoKlgX3dqEuO7pIJHNtJzjX/WyiymqI/6pC+Rg+xriZj3f+5
+          CaahHwxDI8jeK1TRVCpw87efG4rDfj88VSYIDIzkSAhZNIbgAPOxeKfEqPQqrORN
+          BTaZe/Yc/CkJbbB2oNIN1Z6LzjZCrd7rZGbk2keqD/TKkqvQQxlyXRelpolwuAy0
+          oEoOBGDnzsh66npahAXMYiwSjHJwgZGBlybXd0TJ3TgV2ky1pGV1kQM7qYnHma0h
+          jPjH7yM+qMZmH6xo2tsfgPC1YoiQ2xgdbryF5/xCwY5b/OopigSBwH34OaZpiaxh
+          61OeM/WX9df72HDj9yW75rrlEWuYccvMhzFYhwIDAQABAoIBAQCNze9QOQZigrA1
+          q0rKad//rQZtpM/Gyj2Wdl50nlIVepLLozZopAw0svoJJxvkDiTpvSsL4jxSkHp6
+          blHM25GbGTQnoFFSoomFr8LrXYMkgiBAO4RjxlOD8GexQPIuN9C6DXr/RAA/1Pl1
+          gNuwBptRatNeNlwekAtUOPC+3s/PgbkTpD2KeYlha8CduqtSg5ksA18t2yyWny+N
+          r2dnS+jHURc1KrO3D/yMGqNvxvSipu5JfwYOeeaSIkCZABVk1Mc77f7MbmbXhuvA
+          MpqpTWC75tiHs/v/Mly29XelDmY8e/5J5tbePkeriX+xJVLGcER0Sxljv1bWrQlU
+          z4EmPVLhAoGBAPesxL5KwYxNtrQOLt6zOIl1+vxzMEd1ldQB9yJV02pO3ffzKpGQ
+          nSpT9DMEEtw7oJiOruuDjvFiAy+aDOgJxMZ95W2uW7ftoPDkZ4OHcI+iz4ZBLZ0Z
+          sm8OvS1ZRhjdzTWhohJ2XNC+oyBgsrK0gIColk30bi5qtPkvaT9RrKhdAoGBAMDH
+          j07kxrwk/ubSz8bFL4x1aNC1SSIxyMoOC5SMwB5e1LEKx74bwaa/uoaKVlfbwa41
+          XJ+Oj8TwbAVMvjo49AFiyjIBXqhjLlfwH0CCKqOMDma69x3bReNpaKuLtK41Ds4m
+          cmqOxRSi9Y+3UPTSdd7QTJHFs27guobV6gL/JiYzAoGBAL9diWJyhltuzGUQtFwz
+          49IqC3Q1WC9OhiaaIiYwZDq2l0D2bISuVREYbw1f72ak17AoRrUIIFEXZtjH0YMT
+          0SuAqN13I7zYaUrXX7e71VfV9zyHbcP9z+WJYNgCK2wZLG5s5boYJBzRv17L+Cal
+          2sgN+pxe6ScKIayLWmmnJJ2tAoGAatPrYT+7tXUW4BiAVVjeEYrai5V6Mn2+E+IW
+          nrokmG/ak0UzDPFaranflkDAui0oNf6SFkUs/Ghyo7k0TRVUehQhkfZaWxujCc4h
+          s2CuejTZoioHWL8zCmNWQoHHnSX/z1NU4iG9qsLnKz3dmd2qvc9WLw2McmwMUT3n
+          UMPNgysCgYBrVWgyieliL68s1w5VY0lmvBexxeHcV2JTaylH2YAmvuyLcaq/SqBR
+          lRwEzwsnHQ9N+Zm2rvRNzOGE659T0th5WxxnAHAtfOSHAGrrTvbl7ADRePJ6TVnT
+          PafXWVHQeM7Pti9H3UQfUl0fQ0l3UyO5/kG69cuxjPWvawM9I/SNpg==
+          -----END RSA PRIVATE KEY-----
+
+rds_instances:
+  primary_db:
+  - name: "fleetconnect-staging-db"
+    type: "RDS PostgreSQL"
+    engine: "PostgreSQL"
+    version: "17.8"
+    instance_type: "db.t3.small"
+    storage: "20GB"
+    port: 5432
+    endpoint: "fleetconnect-staging-db.calcky64suol.us-east-1.rds.amazonaws.com"
+    security_group: "fleetconnect-staging-db-sg"
+    privately_accessible: true
+    access:
+    - username: "postgres"
+      password: "PKz6L0YRRWxhAmNQ"
+      database: "fleetconnect-staging-db"
+
+s3_buckets:
+  app_bucket:
+  - name: "fleetconnect-staging-appassets"
+    region: "us-east-1"
+    access:
+    - key: "AKIA6QKR7UDK2NDXEK7B"
+
+  raw_bucket:
+  - name: "fleetconnect-raw-staging"
+    region: "us-east-1"
+    access:
+    - key: "N/A"
+
+redis_instances:
+  redis_server:
+  - name: "redis-server"
+    region: "self-hosted"
+    access:
+    - key: "Internal VPC access only"
+
+ecr_repos:
+  backend_service:
+  - name: "fleet-connect-backend"
+    region: "us-east-1"
+    url: "997141225685.dkr.ecr.us-east-1.amazonaws.com/fleet-connect-backend"
+
+  frontend_service:
+  - name: "fleet-connect-frontend"
+    region: "us-east-1"
+    url: "997141225685.dkr.ecr.us-east-1.amazonaws.com/fleet-connect-frontend"
+
+# ecr_repos:
+#   game_assets:
+#     - name: "game-assets-ecr"
+#       region: "us-east-1"
+#       url: "123456789012.dkr.ecr.us-east-1.amazonaws.com/game-assets"
+#   matchmaking:
+#     - name: "matchmaking-ecr"
+#       region: "us-west-2"
+#       url: "123456789012.dkr.ecr.us-west-2.amazonaws.com/matchmaking"
+
+albs:
+  main_alb:
+  - name: "fleet-connect-alb"
+    region: "us-east-1"
+    listeners:
+    - port: 80
+      protocol: HTTP
+      action: redirect
+      redirect_to_port: 443
+
+    - port: 443
+      protocol: HTTPS
+      certificates:
+      - arn: "arn:aws:elasticloadbalancing:us-east-1:997141225685:listener/app/fleet-connect-alb/6e5eb6e1618e4af7/2de1e09cfe085374"
+      rules:
+      - host_header: "staging-jenkins.fleetconnect.io"
+        target_group:
+          name: "fleetconnect-staging-jenkins-tg"
+          port: 8080
+          protocol: HTTP
+          target_type: "instance"
+      - host_header: "staging-grafana.fleetconnect.io"
+        target_group:
+          name: "fleetconnect-staging-grafana-tg"
+          port: 3000
+          protocol: HTTP
+          target_type: "ip"
+      - host_header: "staging-admin.fleetconnect.io"
+        target_group:
+          name: "fleetconnect-staging-admin-tg"
+          port: 3000
+          protocol: HTTP
+          target_type: "ip"
+
+      - host_header: "staging-be.fleetconnect.io"
+        target_group:
+          name: "fleetconnect-staging-be-tg"
+          port: 3000
+          protocol: HTTP
+          target_type: "instance"
+
+      - host_header: "staging-fe.fleetconnect.io"
+        target_group:
+          name: "fleet-connect-web-priv-tg"
+          port: 3001
+          protocol: HTTP
+          target_type: "ip"
+
+app_endpoints:
+  web_application: "https://staging-fe.fleetconnect.io"
+  api_service: "https://staging-be.fleetconnect.io"
+  admin_panel: "https://staging-admin.fleetconnect.io"
+
+observability_endpoints:
+  tools:
+  - name: "grafana"
+    endpoint: "https://staging-grafana.fleetconnect.io"
+    credentials:
+    - username: "admin"
+      password: "hyKc6vnSnTRSkJZ"
+
+  - name: "prometheus"
+    endpoint: "Internal service (not publicly exposed)"
+
+  - name: "alertmanager"
+    endpoint: "Internal service"
+
+  - name: "loki"
+    endpoint: "Internal logging service"
+
+  - name: "promtail"
+    endpoint: "Agent running on nodes"
+
+cicd_endpoints:
+  jenkins:
+  - name: "jenkins"
+    endpoint: "https://staging-jenkins.fleetconnect.io"
+    credentials:
+    - username: "admin"
+      password: "accc7d2ea2a54123b8832c36d7f2b0fd"
+
+ssl_certificates:
+- info: "SSL/TLS certificates for all staging services are issued and managed through AWS Certificate Manager (ACM) for the wildcard domain *.fleetconnect.io and attached to the Application Load Balancer."

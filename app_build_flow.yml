@@ -1,0 +1,66 @@
+repository_structure: |
+  /apps
+    /backend            # Backend API service (NestJS application)
+    /user-app           # Frontend user application (Next.js)
+    /admin-app          # Admin dashboard application
+  /libs/shared          # Shared utilities and services
+  /docs                 # Documentation
+  /nx.json              # Nx workspace configuration
+  /package.json         # Root dependencies
+  /pnpm-lock.yaml       # pnpm dependency lock file
+  /tsconfig.base.json   # Base TypeScript configuration
+  /.prettierrc          # Prettier configuration
+  /.eslintrc            # ESLint configuration
+
+global_commands:
+  - command: "pnpm install"
+    description: "Install dependencies for the entire monorepo"
+
+  - command: "pnpm --filter backend build"
+    description: "Build backend NestJS service"
+
+  - command: "pnpm --filter admin-app build"
+    description: "Build admin dashboard"
+
+  - command: "pnpm --filter user-app build"
+    description: "Build frontend user application"
+
+applications:
+
+  - name: "User Application"
+    technology: "Next.js"
+    path: "/apps/user-app"
+    build_commands:
+      - command: "pnpm --filter user-app build"
+        description: "Build the Next.js frontend user application"
+
+  - name: "Backend API"
+    technology: "NestJS"
+    path: "/apps/backend"
+    build_commands:
+      - command: "pnpm --filter backend build"
+        description: "Build the backend API service"
+
+  - name: "Admin Dashboard"
+    technology: "React / Next.js"
+    path: "/apps/admin-app"
+    build_commands:
+      - command: "pnpm --filter admin-app build"
+        description: "Build the admin dashboard"
+
+environments_text: |
+  - The staging environment uses a **Jenkins CI/CD pipeline** for automation.
+  - Jenkins pipelines are triggered when code is pushed to the **staging branch**.
+  - Jenkins clones the repository from Git, installs dependencies using **pnpm**, and runs the build commands for each application.
+  - The build artifacts are prepared and deployed to the staging infrastructure.
+  - Slack notifications are sent for build start, success, and failure events.
+
+docker_text: |
+  The project uses **Docker** for containerization in the staging and production environments.
+  The Jenkins pipeline builds the application artifacts and packages them into Docker images.
+  These Docker images are deployed to the EC2 servers running the Fleet Connect services.
+
+additional_sections_text: |
+  - **Environment Management**: Environment variables are managed through server configuration and Jenkins environment parameters.
+  - **Pipeline Documentation**: Jenkins pipelines handle code checkout, dependency installation, application build, and deployment.
+  - **Monitoring**: The infrastructure includes Grafana, Prometheus, Loki, and Promtail for monitoring and logging.

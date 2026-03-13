@@ -1,0 +1,21 @@
+## CI/CD Flow: {{ cicd_flow.jenkins[0].name | title }}
+
+---
+
+### Jenkins Jobs
+
+{% for job in cicd_flow.jenkins[0].jobs %}
+#### {{ job.name }}
+
+| Property | Details |
+|----------|---------|
+| **Triggered By** | {{ job.triggered_by }} |
+| **Description** | {{ job.description }} |
+
+**Pipeline Code:**
+```groovy
+{{ job.code }}
+```
+---
+
+{% endfor %}

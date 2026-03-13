@@ -1,0 +1,45 @@
+---
+- name: Generate Fleet Connect Handover Documentation
+  hosts: localhost
+  gather_facts: true
+
+  vars_files:
+    - vars/component_access.yml
+    - vars/app_build_flow.yml
+    - vars/cicd.yml
+
+  tasks:
+
+    - name: Ensure output directory exists
+      ansible.builtin.file:
+        path: output
+        state: directory
+        mode: '0755'
+
+    - name: Generate Component Documentation
+      ansible.builtin.template:
+        src: templates/component.md.j2
+        dest: output/component.md
+        mode: '0644'
+
+    - name: Generate Access Documentation
+      ansible.builtin.template:
+        src: templates/access.md.j2
+        dest: output/access.md
+        mode: '0644'
+
+    - name: Generate App Build Flow Documentation
+      ansible.builtin.template:
+        src: templates/app_build_flow.md.j2
+        dest: output/app_build_flow.md
+        mode: '0644'
+
+    - name: Generate CI/CD Documentation
+      ansible.builtin.template:
+        src: templates/cicd.md.j2
+        dest: output/cicd.md
+        mode: '0644'
+
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg: "Fleet Connect documentation generated successfully in output/ directory"

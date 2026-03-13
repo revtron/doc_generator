@@ -1,0 +1,50 @@
+cicd_flow:
+  jenkins:
+  - name: "jenkins"
+    auth_method: "Basic Auth" # Info only, no credentials
+
+    jobs:
+    - name: "build_admin_app"
+      triggered_by: "Push to staging branch"
+      description: "Builds the admin application using pnpm."
+      code: |
+        Checkout repository
+        Install dependencies using pnpm
+        Build admin application
+
+    - name: "build_backend"
+      triggered_by: "Push to staging branch"
+      description: "Builds the backend API service."
+      code: |
+        Checkout repository
+        Install dependencies
+        Build backend service
+
+    - name: "build_web_app"
+      triggered_by: "Push to staging branch"
+      description: "Builds the frontend web application."
+      code: |
+        Checkout repository
+        Install dependencies
+        Build frontend app
+
+    - name: "deploy_admin_app"
+      triggered_by: "Manual or after admin build"
+      description: "Deploy admin app to staging server via SSH."
+      code: |
+        Connect to EC2 server
+        Run deployment script
+
+    - name: "deploy_backend"
+      triggered_by: "Manual or after backend build"
+      description: "Deploy backend API to staging server."
+      code: |
+        SSH to backend server
+        Execute update script
+
+    - name: "deploy_web_app"
+      triggered_by: "Manual or after frontend build"
+      description: "Deploy web application to staging environment."
+      code: |
+        SSH to web server
+        Run deployment script
